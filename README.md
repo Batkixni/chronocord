@@ -9,12 +9,12 @@
 
 *Engineered with Discord Components V2, React 19, PostgreSQL, and Transactional Email Dispatch.*
 
-[![Node.js Version](https://img.shields.io/badge/node.js-v22+-68a063?style=flat-square&logo=node.js)](https://nodejs.org)
-[![React Version](https://img.shields.io/badge/react-19-61dafb?style=flat-square&logo=react)](https://react.dev)
-[![Discord.js](https://img.shields.io/badge/discord.js-v14-5865F2?style=flat-square&logo=discord)](https://discord.js.org)
-[![PostgreSQL](https://img.shields.io/badge/database-PostgreSQL%2016-4169e1?style=flat-square&logo=postgresql)](https://www.postgresql.org)
-[![Docker](https://img.shields.io/badge/docker-ready-2496ed?style=flat-square&logo=docker)](https://www.docker.com)
-[![License: MPL-2.0](https://img.shields.io/badge/license-MPL--2.0-blue?style=flat-square)](LICENSE)
+[![Node.js Version](https://img.shields.io/badge/node.js-v22+-68a063?style=for-the-badge&logo=node.js)](https://nodejs.org)
+[![React Version](https://img.shields.io/badge/react-19-61dafb?style=for-the-badge&logo=react)](https://react.dev)
+[![Discord.js](https://img.shields.io/badge/discord.js-v14-5865F2?style=for-the-badge&logo=discord)](https://discord.js.org)
+[![PostgreSQL](https://img.shields.io/badge/database-PostgreSQL%2016-4169e1?style=for-the-badge&logo=postgresql)](https://www.postgresql.org)
+[![Docker](https://img.shields.io/badge/docker-ready-2496ed?style=for-the-badge&logo=docker)](https://www.docker.com)
+[![License: MPL-2.0](https://img.shields.io/badge/license-MPL--2.0-blue?style=for-the-badge)](LICENSE)
 
 </div>
 
