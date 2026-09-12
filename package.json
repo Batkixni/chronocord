@@ -1,0 +1,38 @@
+{
+  "name": "chronocord",
+  "version": "1.0.0",
+  "description": "Executive meeting and scheduling bot for Discord teams with web dashboard, Google Calendar sync, and email notifications",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "build:client": "cd client && npm install && npm run build"
+  },
+  "keywords": [
+    "discord",
+    "discord-bot",
+    "scheduling",
+    "calendar",
+    "meeting",
+    "google-calendar",
+    "openmail",
+    "postgresql",
+    "react",
+    "self-hosted"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "chrono-node": "^2.9.1",
+    "cookie-parser": "^1.4.7",
+    "discord.js": "^14.26.4",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "node-schedule": "^2.1.1",
+    "pg": "^8.23.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

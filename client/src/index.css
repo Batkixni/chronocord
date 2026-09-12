@@ -1,0 +1,130 @@
+@import "tailwindcss";
+
+:root {
+  /* ── Reference-matched palette ── */
+  --sidebar-bg: #F5F5F5;
+  --main-bg: #FFFFFF;
+  --card-bg: #FFFFFF;
+  --card-inner-bg: #F5F5F5;
+
+  --text: #111111;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+
+  --border: #E5E5E5;
+  --border-light: #F0F0F0;
+
+  /* Accent = original Claude orange */
+  --accent: #D97757;
+  --accent-hover: #C96442;
+  --accent-light-bg: #F5F0EB;
+  --accent-light-text: #9E5A3C;
+
+  --selected: #D97757;
+
+  /* Status */
+  --status-online: #4ADE80;
+  --status-busy: #F87171;
+  --status-away: #FBBF24;
+  --status-offline: #D1D5DB;
+
+  /* Tag pastels (mapped to orange family to match accent) */
+  --tag-info-bg: #F5F0EB;
+  --tag-info-text: #9E5A3C;
+  --tag-green-bg: #EDF3EC;
+  --tag-green-text: #346538;
+  --tag-red-bg: #FDEBEC;
+  --tag-red-text: #9F2F2D;
+  --tag-gray-bg: #F3F4F6;
+  --tag-gray-text: #6B7280;
+
+  --radius-xl: 16px;
+  --radius-lg: 12px;
+  --radius-md: 10px;
+  --radius-sm: 8px;
+  --radius-pill: 9999px;
+}
+
+[data-theme="dark"] {
+  --sidebar-bg: #13161C;
+  --main-bg: #0F1115;
+  --card-bg: #181B22;
+  --card-inner-bg: #1E2128;
+
+  --text: #F0F0F0;
+  --text-secondary: #A0A8B8;
+  --text-muted: #6B7280;
+
+  --border: #2A2D35;
+  --border-light: #1E2128;
+
+  --accent: #E07A5F;
+  --accent-hover: #D4694E;
+  --accent-light-bg: #22262E;
+  --accent-light-text: #E07A5F;
+
+  --selected: #E07A5F;
+
+  --status-online: #4ADE80;
+  --status-busy: #F87171;
+  --status-away: #FBBF24;
+  --status-offline: #4B5563;
+
+  --tag-info-bg: #22262E;
+  --tag-info-text: #E07A5F;
+  --tag-green-bg: #1B3A1C;
+  --tag-green-text: #81C784;
+  --tag-red-bg: #3A1B1B;
+  --tag-red-text: #EF9A9A;
+  --tag-gray-bg: #22262E;
+  --tag-gray-text: #9CA3AF;
+}
+
+html {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: var(--sidebar-bg);
+  color: var(--text);
+  margin: 0;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Calendar select styling */
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+
+/* Date/Time input styling */
+input[type="date"],
+input[type="time"] {
+  font-family: inherit;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.4);
+  cursor: pointer;
+}
+
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.6);
+}
+
+/* Touch optimization */
+@media (max-width: 768px) {
+  * { -webkit-tap-highlight-color: transparent; }
+}
