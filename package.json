@@ -21,7 +21,7 @@
     "self-hosted"
   ],
   "author": "",
-  "license": "MIT",
+  "license": "MPL-2.0",
   "type": "commonjs",
   "dependencies": {
     "chrono-node": "^2.9.1",
