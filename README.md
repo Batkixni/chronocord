@@ -2,6 +2,10 @@
 
 <div align="center">
 
+<img src="./assets/avatar.jpg" width="128" height="128" style="border-radius: 32px; box-shadow: 0 10px 30px rgba(0,0,0,0.12);" alt="Chronocord Logo" />
+<br />
+<br />
+
 **The Executive Meeting & Scheduling Engine for Discord Teams**
 
 *Engineered with Discord Components V2, React 19, PostgreSQL, and Transactional Email Dispatch.*
