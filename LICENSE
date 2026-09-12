@@ -5,8 +5,8 @@ Mozilla Public License Version 2.0
 --------------
 
 1.1. "Contributor"
-    means each individual or entity that creates, contributes to the
-    creation of, or owns Covered Software.
+    means each individual or legal entity that creates, contributes to
+    the creation of, or owns Covered Software.
 
 1.2. "Contributor Version"
     means the combination of the Contributions of others (if any) used
@@ -49,8 +49,9 @@ Mozilla Public License Version 2.0
 1.10. "Modifications"
     means any of the following:
 
-    (a) any addition to or deletion from the contents of a file
-        containing Covered Software; or
+    (a) any file in Source Code Form that results from an addition to,
+        deletion from, or modification of the contents of Covered
+        Software; or
 
     (b) any new file in Source Code Form that contains any Covered
         Software.
@@ -63,10 +64,16 @@ Mozilla Public License Version 2.0
     made, import, or transfer of either its Contributions or its
     Contributor Version.
 
-1.12. "Source Code Form"
-    means the preferred form of the work for making modifications.
+1.12. "Secondary License"
+    means either the GNU General Public License, Version 2.0, the GNU
+    Lesser General Public License, Version 2.1, the GNU Affero General
+    Public License, Version 3.0, or any later versions of those
+    licenses.
 
-1.13. "You" (or "Your")
+1.13. "Source Code Form"
+    means the form of the work preferred for making modifications.
+
+1.14. "You" (or "Your")
     means an individual or a legal entity exercising rights under this
     License. For legal entities, "You" includes any entity that
     controls, is controlled by, or is under common control with You. For
@@ -105,9 +112,11 @@ distributes such Contribution.
 The licenses granted in this Section 2 are the only rights granted under
 this License. No additional rights or licenses will be implied from the
 distribution or licensing of Covered Software under this License.
-Notwithstanding Section 2.1(b) above, no patent license is granted:
+Notwithstanding Section 2.1(b) above, no patent license is granted by a
+Contributor:
 
-(a) for any code that You delete from the Covered Software; or
+(a) for any code that a Contributor has removed from Covered Software;
+    or
 
 (b) for infringements caused by: (i) Your and any other third party's
     modifications of Covered Software, or (ii) the combination of its
@@ -211,13 +220,13 @@ jurisdiction.
 ---------------------------------------------------
 
 If it is impossible for You to comply with any of the terms of this
-License with respect to all or some of the Covered Software due to
-statute, judicial order, or regulation then You must: (a) comply with the
-terms of this License to the maximum extent possible; and (b) describe
-the limitations and the code they affect. Such description must be placed
-in a text file included with all distributions of the Covered Software
-under this License. Except to the extent prohibited by statute or
-regulation, such description must be sufficiently detailed for a
+License with respect to some or all of the Covered Software due to
+statute, judicial order, or regulation then You must: (a) comply with
+the terms of this License to the maximum extent possible; and (b)
+describe the limitations and the code they affect. Such description must
+be placed in a text file included with all distributions of the Covered
+Software under this License. Except to the extent prohibited by statute
+or regulation, such description must be sufficiently detailed for a
 recipient of ordinary skill to be able to understand it.
 
 5. Termination
@@ -244,8 +253,8 @@ directly or indirectly infringes any patent, then the rights granted to
 You by any and all Contributors for the Covered Software under Section
 2.1 of this License shall terminate.
 
-5.3. In the event of termination under Sections 5.1 or 5.2 above, all end
-user license agreements (excluding distributors and resellers) which
+5.3. In the event of termination under Sections 5.1 or 5.2 above, all
+end user license agreements (excluding distributors and resellers) which
 have been validly granted by You or Your distributors under this License
 prior to termination shall survive termination.
 
@@ -299,7 +308,7 @@ courts of a jurisdiction where the defendant maintains its principal
 place of business and such litigation shall be governed by laws of that
 jurisdiction, without reference to its conflict-of-law provisions.
 Nothing in this Section shall prevent a party's ability to bring
-counter-claims or cross-claims.
+cross-claims or counter-claims.
 
 9. Miscellaneous
 ----------------
@@ -334,9 +343,10 @@ If you create software not governed by this License, and you want to
 create a new license for such software, you may create and use a
 modified version of this License if you rename the license and remove
 any references to the name of the license steward (except to note that
-such disclosure is being made in accordance with this License).
+such modified license differs from this License).
 
-10.4. Distributing Source Code Form that is Incompatible With Secondary Licenses
+10.4. Distributing Source Code Form that is Incompatible With Secondary
+Licenses
 
 If You choose to distribute Source Code Form that is Incompatible With
 Secondary Licenses under the terms of this version of the License, the
@@ -347,7 +357,7 @@ Exhibit A - Source Code Form License Notice
 
   This Source Code Form is subject to the terms of the Mozilla Public
   License, v. 2.0. If a copy of the MPL was not distributed with this
-  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+  file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 If it is not possible or desirable to put the notice in a particular
 file, then You may include the notice in a location (such as a LICENSE
@@ -361,3 +371,4 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
 
   This Source Code Form is "Incompatible With Secondary Licenses", as
   defined by the Mozilla Public License, v. 2.0.
+
