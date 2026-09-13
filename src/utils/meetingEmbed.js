@@ -14,9 +14,13 @@ function buildMeetingContainer(meeting, rsvps = [], guildName = '', options = {}
 
   const components = [];
 
+  const isWeekly = meeting.recurrence === 'weekly';
+  const recurrenceTag = isWeekly ? ' [Weekly Recurring]' : '';
+  const recurrenceDetail = isWeekly ? ' · **Recurrence**: Weekly' : '';
+
   // Header section: Title and Description with optional Thumbnail
   const headerContent = [
-    `# ${meeting.title}`,
+    `# ${meeting.title}${recurrenceTag}`,
     meeting.description ? `> ${meeting.description.replace(/\n/g, '\n> ')}` : '',
   ].filter(Boolean).join('\n');
 
@@ -32,7 +36,7 @@ function buildMeetingContainer(meeting, rsvps = [], guildName = '', options = {}
 
   // Meeting Details
   const details = [
-    `**Time**: <t:${unixTime}:F> (<t:${unixTime}:R>)`,
+    `**Time**: <t:${unixTime}:F> (<t:${unixTime}:R>)${recurrenceDetail}`,
     `**Organizer**: <@${meeting.creatorId}>${guildName ? ` · **Server**: ${guildName}` : ''}`,
   ].join('\n');
   components.push(createTextDisplay(details));
@@ -86,6 +90,10 @@ function formatGoogleCalendarUrl(meeting, guildName = '') {
     details: meeting.description || '',
     location: guildName || '',
   });
+
+  if (meeting.recurrence === 'weekly') {
+    params.set('recur', 'RRULE:FREQ=WEEKLY');
+  }
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }

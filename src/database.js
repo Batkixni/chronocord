@@ -118,11 +118,13 @@ async function initSchema() {
       targetRoleIds TEXT,
       targetUserIds TEXT,
       reminderSent INTEGER DEFAULT 0,
-      messageId TEXT
+      messageId TEXT,
+      recurrence TEXT DEFAULT 'none'
     )
   `);
 
   await db.execute(`ALTER TABLE meetings ADD COLUMN IF NOT EXISTS messageId TEXT`);
+  await db.execute(`ALTER TABLE meetings ADD COLUMN IF NOT EXISTS recurrence TEXT DEFAULT 'none'`);
 
   await db.execute(`
     CREATE TABLE IF NOT EXISTS rsvps (

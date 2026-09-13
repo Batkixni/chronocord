@@ -31,12 +31,21 @@ module.exports = {
     .addStringOption(option =>
       option.setName('description')
         .setDescription('Detailed agenda / description (Optional)')
-        .setRequired(false)),
+        .setRequired(false))
+    .addStringOption(option =>
+      option.setName('recurrence')
+        .setDescription('Meeting recurrence frequency (Default: none)')
+        .setRequired(false)
+        .addChoices(
+          { name: 'One-off (Does not repeat)', value: 'none' },
+          { name: 'Weekly Recurring Meeting', value: 'weekly' },
+        )),
 
   async execute(interaction, client) {
     const timeInput = interaction.options.getString('time');
     const title = interaction.options.getString('title');
     const description = interaction.options.getString('description') || null;
+    const recurrence = interaction.options.getString('recurrence') || 'none';
 
     const scheduledAt = parseTime(timeInput);
     if (!scheduledAt) {
@@ -55,9 +64,11 @@ module.exports = {
 
     const unixTime = Math.floor(scheduledAt.getTime() / 1000);
     const userAvatar = interaction.user.displayAvatarURL({ extension: 'png', size: 256 });
+    const isWeekly = recurrence === 'weekly';
+    const recurrenceBadge = isWeekly ? ' · **Recurrence**: Weekly' : '';
 
     const headerContent = [
-      `# Meeting Preview`,
+      `# Meeting Preview${isWeekly ? ' [Weekly Recurring]' : ''}`,
       `### ${title}`,
       description ? `> ${description.replace(/\n/g, '\n> ')}` : '',
     ].filter(Boolean).join('\n');
@@ -68,7 +79,7 @@ module.exports = {
     });
 
     const details = [
-      `**Time**: <t:${unixTime}:F> (<t:${unixTime}:R>)`,
+      `**Time**: <t:${unixTime}:F> (<t:${unixTime}:R>)${recurrenceBadge}`,
       `**Organizer**: <@${interaction.user.id}>`,
       `Select members to notify from the menu below, or publish directly.`,
     ].join('\n');
@@ -124,11 +135,12 @@ module.exports = {
       description,
       scheduledAt,
       mentionIds,
+      recurrence,
     });
   },
 
   async createMeetingFromSession(interaction, client, session, targetUserIds = [], options = {}) {
-    const { guildId, channelId, creatorId, title, description, scheduledAt, mentionIds = [] } = session;
+    const { guildId, channelId, creatorId, title, description, scheduledAt, mentionIds = [], recurrence = 'none' } = session;
 
     const allTargetUserIds = [...new Set([...targetUserIds, ...mentionIds])];
 
@@ -141,6 +153,7 @@ module.exports = {
       scheduledAt,
       targetRoleIds: [],
       targetUserIds: allTargetUserIds,
+      recurrence,
     });
 
     // Auto-RSVP going for creator and targeted attendees

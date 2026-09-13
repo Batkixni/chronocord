@@ -15,11 +15,12 @@ class Meeting {
     this.targetUserIds = typeof targetUserIdsRaw === 'string' ? JSON.parse(targetUserIdsRaw) : (targetUserIdsRaw || []);
     this.reminderSent = Boolean(row.reminderSent ?? row.remindersent);
     this.messageId = row.messageId || row.messageid || null;
+    this.recurrence = row.recurrence || 'none';
   }
 
   async save() {
     await db.execute({
-      sql: `UPDATE meetings SET guildId = ?, channelId = ?, creatorId = ?, title = ?, description = ?, scheduledAt = ?, targetRoleIds = ?, targetUserIds = ?, reminderSent = ?, messageId = ? WHERE id = ?`,
+      sql: `UPDATE meetings SET guildId = ?, channelId = ?, creatorId = ?, title = ?, description = ?, scheduledAt = ?, targetRoleIds = ?, targetUserIds = ?, reminderSent = ?, messageId = ?, recurrence = ? WHERE id = ?`,
       args: [
         this.guildId,
         this.channelId,
@@ -31,6 +32,7 @@ class Meeting {
         JSON.stringify(this.targetUserIds),
         this.reminderSent ? 1 : 0,
         this.messageId,
+        this.recurrence || 'none',
         this.id,
       ],
     });
@@ -39,7 +41,7 @@ class Meeting {
 
 async function createMeeting(data) {
   const result = await db.execute({
-    sql: `INSERT INTO meetings (guildId, channelId, creatorId, title, description, scheduledAt, targetRoleIds, targetUserIds, reminderSent) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
+    sql: `INSERT INTO meetings (guildId, channelId, creatorId, title, description, scheduledAt, targetRoleIds, targetUserIds, reminderSent, recurrence) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`,
     args: [
       data.guildId,
       data.channelId,
@@ -50,10 +52,11 @@ async function createMeeting(data) {
       JSON.stringify(data.targetRoleIds || []),
       JSON.stringify(data.targetUserIds || []),
       0,
+      data.recurrence || 'none',
     ],
   });
   const id = Number(result.lastInsertRowid || result.rows?.[0]?.id);
-  return new Meeting({ ...data, id, reminderSent: 0 });
+  return new Meeting({ ...data, id, reminderSent: 0, recurrence: data.recurrence || 'none' });
 }
 
 async function getMeetingById(meetingId) {
@@ -73,7 +76,7 @@ async function updateMeetingMessageId(meetingId, messageId) {
 }
 
 async function updateMeeting(meetingId, fields) {
-  const allowed = ['title', 'description', 'scheduledAt', 'targetRoleIds', 'targetUserIds'];
+  const allowed = ['title', 'description', 'scheduledAt', 'targetRoleIds', 'targetUserIds', 'recurrence'];
   const sets = [];
   const args = [];
   for (const key of allowed) {
@@ -108,9 +111,35 @@ async function findMeetingsNeedingReminder(now, tenMinutesLater) {
 
 async function deleteOldMeetings(beforeDate) {
   await db.execute({
-    sql: `DELETE FROM meetings WHERE scheduledAt < ?`,
+    sql: `DELETE FROM meetings WHERE scheduledAt < ? AND (recurrence IS NULL OR recurrence = 'none')`,
     args: [beforeDate.toISOString()],
   });
+}
+
+async function advanceRecurringMeetings(beforeDate) {
+  const rs = await db.execute({
+    sql: `SELECT * FROM meetings WHERE recurrence = 'weekly' AND scheduledAt < ?`,
+    args: [beforeDate.toISOString()],
+  });
+
+  const advancedMeetings = [];
+  for (const row of rs.rows) {
+    const meeting = new Meeting(row);
+    const nextDate = new Date(meeting.scheduledAt);
+    nextDate.setDate(nextDate.getDate() + 7);
+    meeting.scheduledAt = nextDate;
+    meeting.reminderSent = false;
+    await meeting.save();
+
+    // Reset non-creator RSVPs for the new weekly cycle
+    await db.execute({
+      sql: `DELETE FROM rsvps WHERE meetingId = ? AND userId != ?`,
+      args: [meeting.id, meeting.creatorId],
+    });
+
+    advancedMeetings.push(meeting);
+  }
+  return advancedMeetings;
 }
 
 async function upsertRsvp(meetingId, userId, status) {
@@ -387,6 +416,7 @@ module.exports = {
   deleteMeeting,
   findMeetingsNeedingReminder,
   deleteOldMeetings,
+  advanceRecurringMeetings,
   upsertRsvp,
   deleteRsvp,
   getRsvpsByMeetingId,

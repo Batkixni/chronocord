@@ -1,7 +1,7 @@
 const { ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const { findMeetingsNeedingReminder, deleteOldMeetings, getRsvpsByMeetingId, getUserEmails } = require('./models');
+const { findMeetingsNeedingReminder, deleteOldMeetings, advanceRecurringMeetings, getRsvpsByMeetingId, getUserEmails } = require('./models');
 const { createContainer, createSection, createTextDisplay, createSeparator, V2_FLAGS } = require('./utils/componentsV2');
-const { formatGoogleCalendarUrl } = require('./utils/meetingEmbed');
+const { formatGoogleCalendarUrl, buildMeetingContainer } = require('./utils/meetingEmbed');
 const { sendMeetingReminderNotification } = require('./services/emailService');
 
 /**
@@ -160,8 +160,33 @@ function startScheduler(client) {
         await meeting.save();
       }
 
-      // Cleanup meetings finished more than 1 hour ago
+      // Process meetings that ended more than 1 hour ago:
+      // 1. Weekly recurring meetings: advance by 7 days to next week, reset reminder state and card
       const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+      const advancedMeetings = await advanceRecurringMeetings(oneHourAgo);
+      for (const m of advancedMeetings) {
+        if (m.messageId) {
+          try {
+            const guild = client.guilds.cache.get(m.guildId);
+            const channel = await client.channels.fetch(m.channelId);
+            if (channel?.isTextBased()) {
+              const msg = await channel.messages.fetch(m.messageId);
+              const rsvps = await getRsvpsByMeetingId(m.id);
+              const avatarUrl = guild?.iconURL({ extension: 'png', size: 256 })
+                || client.user.displayAvatarURL({ extension: 'png', size: 256 });
+              const container = buildMeetingContainer(m, rsvps, guild?.name || '', {
+                thumbnailURL: avatarUrl,
+                includeComponents: true,
+              });
+              await msg.edit({ components: [container] });
+            }
+          } catch (err) {
+            console.error(`[Scheduler] Failed to update weekly recurring meeting #${m.id} card:`, err.message);
+          }
+        }
+      }
+
+      // 2. One-off meetings: cleanup meetings finished more than 1 hour ago
       await deleteOldMeetings(oneHourAgo);
     } catch (err) {
       console.error('[Scheduler] Error during execution:', err);

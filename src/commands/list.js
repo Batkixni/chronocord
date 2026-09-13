@@ -105,10 +105,9 @@ module.exports = {
         const rsvpStatus = rsvps.rows[0]?.status;
         const statusLabel = rsvpStatus === 'going' ? '[Attending] ' : rsvpStatus === 'not_going' ? '[Declined] ' : rsvpStatus === 'maybe' ? '[Maybe] ' : '';
         const unix = Math.floor(m.scheduledAt.getTime() / 1000);
-        const desc = m.description ? `\n> ${m.description.replace(/\n/g, '\n> ')}` : '';
-
+        const repeatStr = m.recurrence === 'weekly' ? ' · `Weekly`' : '';
         const itemContent = `### ${index + 1}. ${statusLabel}${m.title}\n` +
-          `<t:${unix}:F> (<t:${unix}:R>)${desc}`;
+          `<t:${unix}:F> (<t:${unix}:R>)${repeatStr}${desc}`;
 
         components.push(createSeparator(true));
         components.push(createTextDisplay(itemContent));
