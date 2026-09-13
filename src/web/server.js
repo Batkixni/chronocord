@@ -64,7 +64,7 @@ app.get('/auth/discord/callback', async (req, res) => {
               discord_avatar = excluded.discord_avatar,
               access_token = excluded.access_token,
               refresh_token = excluded.refresh_token,
-              email = COALESCE(excluded.email, users.email),
+              email = COALESCE(NULLIF(users.email, ''), excluded.email),
               updated_at = CURRENT_TIMESTAMP`,
       args: [discordUser.id, discordUser.username, discordUser.avatar, tokenData.access_token, tokenData.refresh_token, discordUser.email || null],
     });
