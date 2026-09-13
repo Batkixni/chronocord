@@ -85,13 +85,25 @@ client.on(Events.InteractionCreate, async (interaction) => {
       const { processTimefinder } = require('./commands/timefinder');
       const session = client.timefinderSessions.get(interaction.message.id);
       if (!session) {
-        return interaction.reply({ content: 'This button has expired. Please run the command again.', flags: MessageFlags.Ephemeral });
+        return interaction.reply({ content: 'This button has expired. Please re-run the command.', flags: MessageFlags.Ephemeral });
       }
       const { db } = require('./database');
       const allRs = await db.execute({ sql: `SELECT DISTINCT user_id FROM availabilities` });
-      const userIds = allRs.rows.map(r => r.user_id);
+      let userIds = allRs.rows.map(r => r.user_id);
+      if (userIds.length === 0) {
+        userIds = [interaction.user.id];
+      }
       await processTimefinder(interaction, session, userIds);
       client.timefinderSessions.delete(interaction.message.id);
+      return;
+    }
+
+    // timefinder Cancel Button
+    if (interaction.isButton() && interaction.customId === 'timefinder_cancel') {
+      client.timefinderSessions.delete(interaction.message.id);
+      const { createCancelledContainer } = require('./utils/componentsV2');
+      const cancelContainer = createCancelledContainer('Calculation Cancelled', 'Meeting time calculation was cancelled by user.');
+      await interaction.update({ components: [cancelContainer] });
       return;
     }
 
@@ -485,6 +497,124 @@ client.on(Events.InteractionCreate, async (interaction) => {
         console.error('[Timevote] Failed to publish poll:', err.message);
       }
       await interaction.editReply({ content: 'Poll published!' });
+      return;
+    }
+
+    // timevote finalize button (converts leading slot to official meeting)
+    if (interaction.isButton() && interaction.customId.startsWith('tv_finalize_')) {
+      const timevoteId = Number(interaction.customId.replace('tv_finalize_', ''));
+      const timevote = await getTimevoteById(timevoteId);
+      if (!timevote) {
+        return interaction.reply({ content: 'Could not find this poll.', flags: MessageFlags.Ephemeral });
+      }
+      const isAdmin = interaction.member?.permissions?.has('Administrator') ?? false;
+      if (timevote.creatorId !== interaction.user.id && !isAdmin) {
+        return interaction.reply({ content: 'Only the organizer or an administrator can finalize.', flags: MessageFlags.Ephemeral });
+      }
+      if (!timevote.options || timevote.options.length === 0) {
+        return interaction.reply({ content: 'This poll has no valid candidate slots.', flags: MessageFlags.Ephemeral });
+      }
+
+      await interaction.deferUpdate();
+
+      const votes = await getTimevoteVotes(timevoteId);
+      const counts = {};
+      for (const v of votes) {
+        counts[v.optionIndex] = (counts[v.optionIndex] || 0) + 1;
+      }
+
+      let winningIndex = 0;
+      let maxVotes = -1;
+      for (let i = 0; i < timevote.options.length; i++) {
+        const count = counts[i] || 0;
+        if (count > maxVotes) {
+          maxVotes = count;
+          winningIndex = i;
+        }
+      }
+
+      const winningOpt = timevote.options[winningIndex];
+      const winningVoteCount = maxVotes > 0 ? maxVotes : 0;
+      const scheduledAt = new Date(winningOpt.scheduledAt);
+
+      const winningVoters = votes.filter(v => v.optionIndex === winningIndex).map(v => v.userId);
+      const autoGoingUserIds = [...new Set([timevote.creatorId, ...winningVoters])];
+
+      const { createMeeting, upsertRsvp, getRsvpsByMeetingId, updateMeetingMessageId, getUserEmails } = require('./models');
+      const { buildMeetingContainer } = require('./utils/meetingEmbed');
+      const { buildTimevoteFinalizedContainer } = require('./utils/timevoteEmbed');
+      const { sendMeetingCreatedNotification } = require('./services/emailService');
+
+      const meeting = await createMeeting({
+        guildId: timevote.guildId,
+        channelId: timevote.channelId,
+        creatorId: timevote.creatorId,
+        title: timevote.title,
+        description: `Finalized from time poll "${timevote.title}" (Winning votes: ${winningVoteCount})`,
+        scheduledAt,
+        targetRoleIds: [],
+        targetUserIds: autoGoingUserIds,
+      });
+
+      for (const uid of autoGoingUserIds) {
+        await upsertRsvp(meeting.id, uid, 'going');
+      }
+
+      const rsvps = await getRsvpsByMeetingId(meeting.id);
+      const guild = client.guilds.cache.get(timevote.guildId) || interaction.guild;
+      const guildName = guild?.name || '';
+      const avatarUrl = guild?.iconURL({ extension: 'png', size: 256 })
+        || interaction.user.displayAvatarURL({ extension: 'png', size: 256 });
+
+      const meetingContainer = buildMeetingContainer(meeting, rsvps, guildName, {
+        thumbnailURL: avatarUrl,
+        includeComponents: true,
+      });
+
+      const channel = await client.channels.fetch(timevote.channelId);
+      const meetingMessage = await channel.send({
+        flags: V2_FLAGS,
+        components: [meetingContainer],
+      });
+      await updateMeetingMessageId(meeting.id, meetingMessage.id);
+
+      if (autoGoingUserIds.length > 0) {
+        getUserEmails(autoGoingUserIds).then(userEmails => {
+          if (userEmails.length > 0) {
+            sendMeetingCreatedNotification(meeting, userEmails, guildName).catch(err =>
+              console.error('[OpenMail] Failed to send meeting notification email:', err.message)
+            );
+          }
+        }).catch(err => console.error('[OpenMail] Failed to fetch user emails:', err.message));
+      }
+
+      const finalizedContainer = buildTimevoteFinalizedContainer(
+        timevote,
+        winningOpt,
+        winningVoteCount,
+        meetingMessage.url,
+        { thumbnailURL: avatarUrl }
+      );
+
+      await interaction.editReply({ components: [finalizedContainer] });
+      return;
+    }
+
+    // timevote delete button
+    if (interaction.isButton() && interaction.customId.startsWith('tv_delete_')) {
+      const timevoteId = Number(interaction.customId.replace('tv_delete_', ''));
+      const timevote = await getTimevoteById(timevoteId);
+      if (!timevote) {
+        return interaction.reply({ content: 'Could not find this poll.', flags: MessageFlags.Ephemeral });
+      }
+      const isAdmin = interaction.member?.permissions?.has('Administrator') ?? false;
+      if (timevote.creatorId !== interaction.user.id && !isAdmin) {
+        return interaction.reply({ content: 'Only the creator or an administrator can delete this poll.', flags: MessageFlags.Ephemeral });
+      }
+      const { buildTimevoteDeletedContainer } = require('./utils/timevoteEmbed');
+      const deletedContainer = buildTimevoteDeletedContainer(timevote.title);
+      await deleteTimevote(timevoteId);
+      await interaction.update({ components: [deletedContainer] });
       return;
     }
 

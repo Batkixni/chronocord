@@ -63,7 +63,7 @@ function buildAddOptionModal(timevoteId) {
     .setCustomId('option_time')
     .setLabel('Time (e.g. 2026/09/15 15:00 or tomorrow 3pm)')
     .setStyle(TextInputStyle.Short)
-    .setPlaceholder('tomorrow 3pm')
+    .setPlaceholder('2026/09/15 15:00')
     .setRequired(true)
     .setMaxLength(100);
 
@@ -87,8 +87,12 @@ function buildTimevoteVotingContainer(timevote, votes, extra = {}) {
     const bar = createProgressBar(count, totalVotes || 1, 8);
     const voters = votes.filter(v => v.optionIndex === i).map(v => `<@${v.userId}>`).join(' ') || '*No votes yet*';
 
+    const attendeeInfo = (opt.count && opt.total)
+      ? ` · Projected Attendance: **${opt.count}/${opt.total} members** (${Math.round((opt.count / opt.total) * 100)}%)`
+      : '';
+
     optionSections.push(
-      `**Option ${i + 1}** · <t:${unix}:F>\n` +
+      `**Option ${i + 1}** · <t:${unix}:F>${attendeeInfo}\n` +
       `\`${bar}\` **${count} votes** (${pct}%)\n` +
       `Voters: ${voters.length > 120 ? voters.substring(0, 117) + '...' : voters}`
     );
@@ -98,7 +102,7 @@ function buildTimevoteVotingContainer(timevote, votes, extra = {}) {
 
   const headerContent = [
     `# ${timevote.title}`,
-    `Click the buttons below to cast your vote (multiple choices allowed, click again to revoke).`,
+    extra.extraHeaderNote || 'Click candidate time slot buttons below to vote (toggle multi-choice)',
   ].join('\n');
 
   components.push(
@@ -110,13 +114,16 @@ function buildTimevoteVotingContainer(timevote, votes, extra = {}) {
 
   components.push(createSeparator(true));
 
-  const details = `**Organizer**: <@${timevote.creatorId}>`;
+  let details = `**Organizer**: <@${timevote.creatorId}>`;
+  if (extra.participantNote) {
+    details += `\n\n${extra.participantNote}`;
+  }
   components.push(createTextDisplay(details));
 
   components.push(createSeparator(true));
 
   const stats = [
-    `### Poll Results`,
+    `### Voting Progress & Results`,
     optionSections.join('\n\n'),
   ].join('\n');
   components.push(createTextDisplay(stats));
@@ -146,7 +153,6 @@ function buildTimevoteVotingComponents(timevote) {
         day: 'numeric',
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false,
       });
       row.addComponents(
         new ButtonBuilder()
@@ -158,19 +164,68 @@ function buildTimevoteVotingComponents(timevote) {
     rows.push(row);
   }
 
-  // Admin row: edit + delete
+  // Admin / Organizer row: finalize + edit + delete
   rows.push(new ActionRowBuilder().addComponents(
     new ButtonBuilder()
+      .setCustomId(`tv_finalize_${timevote.id}`)
+      .setLabel('Finalize & Schedule Meeting')
+      .setStyle(ButtonStyle.Success),
+    new ButtonBuilder()
       .setCustomId(`tv_edit_${timevote.id}`)
-      .setLabel('Edit')
+      .setLabel('Edit Slots')
       .setStyle(ButtonStyle.Secondary),
     new ButtonBuilder()
       .setCustomId(`tv_delete_${timevote.id}`)
-      .setLabel('Delete')
+      .setLabel('Delete Poll')
       .setStyle(ButtonStyle.Danger),
   ));
 
   return rows;
+}
+
+function buildTimevoteFinalizedContainer(timevote, winningOption, voteCount, meetingUrl, extra = {}) {
+  const unix = Math.floor(new Date(winningOption.scheduledAt).getTime() / 1000);
+  const components = [];
+
+  const headerContent = [
+    `# Poll Closed · Meeting Scheduled`,
+    `### ${timevote.title}`,
+  ].join('\n');
+
+  components.push(
+    createSection({
+      content: headerContent,
+      thumbnailURL: extra.thumbnailURL || null,
+    })
+  );
+
+  components.push(createSeparator(true));
+
+  const details = [
+    `### 🏆 Winning Time Slot`,
+    `> **<t:${unix}:F>** (<t:${unix}:R>)`,
+    `> Final Votes: **${voteCount}** votes`,
+    '',
+    `**Organizer**: <@${timevote.creatorId}>`,
+    'Official meeting has been scheduled! All voters for this slot have been automatically marked as Going.',
+  ].join('\n');
+  components.push(createTextDisplay(details));
+
+  if (meetingUrl) {
+    components.push(createSeparator(true));
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setLabel('View Official Meeting')
+        .setStyle(ButtonStyle.Link)
+        .setURL(meetingUrl)
+    );
+    components.push(row);
+  }
+
+  return createContainer({
+    accentColor: extra.accentColor || null,
+    components,
+  });
 }
 
 function buildTimevoteDeletedContainer(title) {
@@ -187,6 +242,7 @@ module.exports = {
   buildTimevoteVotingEmbed,
   buildTimevoteVotingContainer,
   buildTimevoteVotingComponents,
+  buildTimevoteFinalizedContainer,
   buildTimevoteDeletedEmbed,
   buildTimevoteDeletedContainer,
 };
